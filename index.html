@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="style/style.css">
+
+    <style type="text/css" media="print">
+        .noprint {
+            display: none
+        }
+        
+        .print {
+            display: block !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header class="el-header noprint">
+            <div class="icon-btns">
+                <i class="icon-list" @click="changeLeftMenu"></i>
+                <i class="icon-skip_previous" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('first')"></i>
+                <i class="icon-play_arrow prev-icon" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('prev')"></i>
+                <i class="icon-play_arrow" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('next')"></i>
+                <i class="icon-skip_next" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('last')"></i>
+                <select v-model="currentPage">
+                    <option v-for="page in pageNum" v-bind:value="page">page {{ page }}</option>
+                </select>
+                <i class="icon-zoom_in" v-bind:class="{'disabled': zoomNum == 2}" @click="modifyZoom('in')"></i>
+                <select v-model="zoomNum">
+                    <option value="0.5">50%</option>
+                    <option value="0.6">60%</option>
+                    <option value="0.7">70%</option>
+                    <option value="0.8">80%</option>
+                    <option value="0.9">90%</option>
+                    <option value="1.0" selected>100%</option>
+                    <option value="1.1">110%</option>
+                    <option value="1.2">120%</option>
+                    <option value="1.3">130%</option>
+                    <option value="1.4">140%</option>
+                    <option value="1.5">150%</option>
+                    <option value="1.6">160%</option>
+                    <option value="1.7">170%</option>
+                    <option value="1.8">180%</option>
+                    <option value="1.9">190%</option>
+                    <option value="2.0">200%</option>
+                </select>
+                <i class="icon-zoom_out" v-bind:class="{'disabled': zoomNum == 0.5}" @click="modifyZoom('out')"></i>
+                <i class="icon-format_align_left" @click="textAlign = 'left'"></i>
+                <i class="icon-format_align_center" @click="textAlign = 'center'"></i>
+                <i class="icon-format_align_right" @click="textAlign = 'right'"></i>
+                <i class="icon-print" @click="window.print()"></i>
+            </div>
+        </header>
+
+        <aside class="noprint" width="240px" v-show="ifMenuShow">
+            <nav class="tabNav">
+                <ul>
+                    <li v-bind:class="{ 'curr': currentNav == 0 }" @click="currentNav = 0">Page</li>
+                    <li v-bind:class="{ 'curr': currentNav == 1 }" @click="currentNav = 1">Bookmark</li>
+                </ul>
+
+                <div class="clear"></div>
+            </nav>
+
+            <div class="tab-conent scrollbar" v-bind:style="{ height: asideHeight + 'px' }">
+
+            <section v-show="currentNav == 0">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-file-text2"></i> page {{ page }}</li>
+                </ul>
+            </section>
+
+            <section v-show="currentNav == 1">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-turned_in_not"></i> Bookmark {{ page }}</li>
+                </ul>
+            </section>
+        </div>
+
+        </aside>
+        <div class="main scrollbar noprint"  v-bind:style="{ height: mainHeight + 'px' }" v-bind:class="{ 'mainLeftM': ifMenuShow, 'aleft': textAlign === 'left','acenter': textAlign === 'center','aright': textAlign === 'right'}">
+            <div class="conent" v-html="pageContent" v-bind:style="zoomStyle"></div>
+
+            <div class="clear"></div>
+        </div>
+
+        <!--专门只为打印的内容-->
+        <div class="conent print" style="display:none" v-html="pageContent"></div>
+    </div>
+</body>
+<!-- 先引入 Vue -->
+<script src="js/vue.min.js"></script>
+<script>
+
+var app = new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                // visible: false,
+                isCollapse: false,
+                currentNav: 0,
+                activeName2: 'first',
+                pageNum: 1, 
+                currentPage: 1,
+                pageContent: '',
+                asideHeight: 300,
+                mainHeight: 300,
+                ifMenuShow: true,
+                zoomNum: '1.0',
+                textAlign: 'left',
+                zoomStyle: {},
+                pageDatas: ['<div style="position:absolute;top:0.000000px;left:0.000000px"><nobr><img height="1504.000000" width="816.000000" src ="bgimg/bg00001.jpg"/></nobr></div><p><span style="font-family:Poor Richard;font-size:33.000000px;font-style:normal;font-weight:normal;color:#915B41;"><span style="position:absolute;top:61.650555px;left:157.557327px"><nobr>Hi ! </nobr></span></span></p><p><span style="font-family:Arial;font-size:12.000000px;font-style:normal;font-weight:normal;color:#F8E0B2;"><span style="position:absolute;top:226.519043px;left:321.859314px"><nobr>I am Ruaa AL-nahhas </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:14.000000px;font-style:normal;font-weight:normal;color:#915B41;"><span style="position:absolute;top:246.761963px;left:340.258667px"><nobr>This is my Resume </nobr></span></span></p><p><span style="font-family:Arial;font-size:14.000000px;font-style:normal;font-weight:normal;color:#FFFFFF;"><span style="position:absolute;top:288.140045px;left:82.437469px"><nobr>Ruaa.nahas@yahoo.com </nobr></span></span></p><p><span style="font-family:Arial;font-size:14.000000px;font-style:normal;font-weight:normal;color:#FFFFFF;"><span style="position:absolute;top:286.799652px;left:669.084656px"><nobr>0780759875 </nobr></span></span></p><p><span style="font-family:Arial;font-size:14.000000px;font-style:normal;font-weight:normal;color:#FFFFFF;"><span style="position:absolute;top:287.161865px;left:337.152954px"><nobr>https://www.behance.net/ruaanahas </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:14.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:654.015625px;left:69.459610px"><nobr>Ps </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:14.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:611.793091px;left:67.872940px"><nobr>Ai </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:14.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:697.321289px;left:68.059601px"><nobr>W </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:14.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:739.487793px;left:71.456940px"><nobr>P </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:20.000000px;font-style:normal;font-weight:normal;color:#E26A4E;"><span style="position:absolute;top:564.189941px;left:63.287739px"><nobr>Professional Skills </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:20.000000px;font-style:normal;font-weight:normal;color:#E26A4E;"><span style="position:absolute;top:361.547455px;left:90.983063px"><nobr>Education </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:10.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:475.747406px;left:61.862263px"><nobr>BSc. in Turkish and English languages </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:10.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:491.753906px;left:61.862263px"><nobr>University Of Jordan </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:9.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:492.121918px;left:176.719452px"><nobr>2016- 2020 </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:10.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:419.591156px;left:106.102264px"><nobr>Graphic Design and Digital Marketing </nobr></span><span style="position:absolute;top:435.597748px;left:108.235596px"><nobr>Sae Institute 2022 </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:20.000000px;font-style:normal;font-weight:normal;color:#E26A4E;"><span style="position:absolute;top:353.252350px;left:506.173187px"><nobr>Creative Skills </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:10.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:466.681488px;left:409.601654px"><nobr>logo &amp; branding Graphic Design Infographic Drawing </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#915B41;"><span style="position:absolute;top:57.012859px;left:584.579468px"><nobr>I am a Graphic Designer </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#915B41;"><span style="position:absolute;top:76.220703px;left:584.579468px"><nobr>I love design and never stop </nobr></span><span style="position:absolute;top:95.428551px;left:584.579468px"><nobr>searching for new styles </nobr></span><span style="position:absolute;top:114.636230px;left:584.579468px"><nobr>and new form of self expres-</nobr></span><span style="position:absolute;top:133.844070px;left:584.579468px"><nobr>sions to impeove my skills, </nobr></span><span style="position:absolute;top:153.052078px;left:584.579468px"><nobr>also I am passinate hard </nobr></span><span style="position:absolute;top:172.259933px;left:584.579468px"><nobr>worker who is always </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#915B41;"><span style="position:absolute;top:191.467697px;left:584.579468px"><nobr>seeking knowledge and </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#915B41;"><span style="position:absolute;top:210.675613px;left:584.579468px"><nobr>values in every experience. </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:20.000000px;font-style:normal;font-weight:normal;color:#E26A4E;"><span style="position:absolute;top:556.813171px;left:334.478546px"><nobr>Languages </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:611.125244px;left:282.816406px"><nobr>Arabic </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:662.215393px;left:282.845764px"><nobr>English </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:708.170166px;left:282.831085px"><nobr>Turkish </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:20.000000px;font-style:normal;font-weight:normal;color:#E26A4E;"><span style="position:absolute;top:556.813171px;left:539.570251px"><nobr>Certificates </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:10.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:605.084839px;left:502.269470px"><nobr>2019 </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:10.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:685.237549px;left:502.269470px"><nobr>2019 </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:10.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:755.292725px;left:502.882813px"><nobr>2018 </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:10.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:645.821472px;left:502.269470px"><nobr>2017 </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:601.347229px;left:567.292908px"><nobr>Teaching methods </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:640.035034px;left:567.292908px"><nobr>Tranlation course </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:677.378235px;left:567.292908px"><nobr>Judge at the National competition </nobr></span><span style="position:absolute;top:716.065979px;left:569.852966px"><nobr>of student debating </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:754.753784px;left:567.292908px"><nobr>Debating Course </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:20.000000px;font-style:normal;font-weight:normal;color:#E26A4E;"><span style="position:absolute;top:833.474121px;left:60.430401px"><nobr>WORK EXPERIRNCE </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:20.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:910.252197px;left:69.390404px"><nobr>Eye On Future initiative </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:942.636841px;left:69.399071px"><nobr>Social media specialist 2017 </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:995.986572px;left:69.399071px"><nobr>-Planning for campaigns, and the marketing </nobr></span><span style="position:absolute;top:1018.667725px;left:71.959068px"><nobr>materials required with the technical team. </nobr></span><span style="position:absolute;top:1041.349121px;left:69.399071px"><nobr>-Responsible for promotion timeline execution. </nobr></span><span style="position:absolute;top:1063.966309px;left:69.735069px"><nobr>-writing comprehensive content capable of conveying </nobr></span><span style="position:absolute;top:1086.647583px;left:72.295067px"><nobr>an overview of the specialty and its fields of work. </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:20.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1161.488159px;left:77.475067px"><nobr>Iris Media </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1193.874634px;left:73.208405px"><nobr>Social media specialist 2021 </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1247.224365px;left:73.208405px"><nobr>- Advertising design for clients. </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1269.905762px;left:73.208405px"><nobr>- Createing posts on social media. </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1292.587036px;left:73.208405px"><nobr>- Covering all events and making </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1315.268188px;left:73.208405px"><nobr>promotions and advertisements. </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:20.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1359.066772px;left:77.483864px"><nobr>malik center </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1421.496948px;left:68.950531px"><nobr>- Teaching forgin students from all the world Arabic language . </nobr></span><span style="position:absolute;top:1444.178101px;left:68.950531px"><nobr>- Teaching Arab student English language. </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:20.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:910.250305px;left:410.196655px"><nobr>Chief OF Staff </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:942.636841px;left:410.196655px"><nobr>Student Union 2016-2018 </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:965.318054px;left:412.756683px"><nobr>Achievements /Tasks </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1004.005859px;left:410.196655px"><nobr>- Transferring students\' needs and addressing the concerned </nobr></span><span style="position:absolute;top:1026.687012px;left:410.196655px"><nobr>authorities in order to solve them. </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1049.368286px;left:410.196655px"><nobr>- Represent students in meetings and discussions. </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1072.049561px;left:410.196655px"><nobr>- Preparing for interactive scientific. </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1094.730957px;left:412.756683px"><nobr>and entertainment activities and supervising </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1117.412109px;left:412.756683px"><nobr>their implementation and workflow. </nobr></span></span></p><p dir="rtl"><span style="font-family:Noto Sans Arabic;font-size:20.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1176.625488px;left:423.073975px"><nobr>مبادر ة مكانك مكا </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1208.078491px;left:410.196655px"><nobr>Project Coordinator 2018 </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1230.759644px;left:412.756683px"><nobr>Achievements /Tasks </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1276.106079px;left:410.196655px"><nobr>- Preparing the project plan and budgeting for </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1298.787476px;left:410.196655px"><nobr>all running projects </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1321.468628px;left:410.196655px"><nobr>- Supervised the plan implantation, marketing, logistics and </nobr></span><span style="position:absolute;top:1344.149902px;left:410.196655px"><nobr>the public relation. </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:960.025146px;left:71.508667px"><nobr>Achievements /Tasks </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1209.903198px;left:74.212669px"><nobr>Achievements /Tasks </nobr></span></span></p><p><span style="font-family:Poor Richard;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1383.702148px;left:78.356689px"><nobr>Achievements /Tasks 2021 </nobr></span></span></p>']
+            }
+        },
+        mounted: function() {
+            this.$nextTick(function() {
+                this.pageNum = this.pageDatas.length;
+                this.pageContent = this.pageDatas[0];
+
+                this.setLeftMenuHeight();
+            })
+        },
+        watch: {
+            'currentPage': function(newVal, oldValue) {
+                // console.log('newVal ' + newVal, 'oldValue ' + oldValue);
+                if (newVal) {
+                    this.pageContent = this.pageDatas[this.currentPage - 1];
+                }
+            },
+            'zoomNum': function(newVal, oldValue) {
+                if (newVal) {
+                    this.zoomStyle = {
+                        'transform': 'scale(' + newVal + ')',
+                        '-webkit-transform': 'scale(' + newVal + ')',
+                        '-ms-transform': 'scale(' + newVal + ')',
+                        '-moz-transform': 'scale(' + newVal + ')',
+                        '-o-transform': 'scale(' + newVal + ')'
+                    }
+                }
+            }
+        },
+        methods: {
+            
+            changeCurrentPage: function(methods) {
+                switch (methods) {
+                    case 'first':
+                        this.currentPage = 1;
+                        break;
+                    case 'prev':
+                        if (this.currentPage > 1) {
+                            this.currentPage -= 1;
+                        }
+                        break;
+                    case 'next':
+                        if (this.currentPage < this.pageNum) {
+                            this.currentPage += 1;
+                        }
+                        break;
+                    case 'last':
+                        this.currentPage = this.pageNum;
+                        break;
+                }
+            },
+
+            gotoPage: function(page) {
+                console.log(page);
+                this.currentPage = page;
+            },
+            modifyZoom: function(type) {
+                switch (type) {
+                    case 'in':
+                        if (this.zoomNum < 2) {
+                            // this.zoomNum = (this.zoomNum + 0.1).toFixed(1);
+                            this.zoomNum = (parseFloat(this.zoomNum) + 0.1).toFixed(1);
+                        }
+                        break;
+                    case 'out':
+                        if (this.zoomNum > 0.5) {
+                            this.zoomNum = (parseFloat(this.zoomNum) - 0.1).toFixed(1);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                console.log(this.zoomNum);
+            },
+            setLeftMenuHeight: function() {
+                // this.asideHeight = document.body.scrollHeight - 60;
+                this.mainHeight = document.documentElement.clientHeight - 60 - 20;
+                // 60为头部导航高度， 46为menu高度， 40为上下padding
+                this.asideHeight = this.mainHeight - 20 - 46;
+            },
+            changePage: function(page) {
+                this.currentPage = page;
+                // this.pageContent = this.pageDatas[page - 1];
+            },
+            changeLeftMenu: function() {
+                this.ifMenuShow = !this.ifMenuShow;
+            }
+        }
+    });
+
+function gotoPage(page) {
+    console.log(page);
+    app.gotoPage(page);
+}
+
+</script>
+
+</html>
